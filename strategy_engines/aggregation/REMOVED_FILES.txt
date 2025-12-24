@@ -1,0 +1,9 @@
+Files removed from aggregation/ directory on 2025-12-23:
+
+These files were removed as they were not integrated into any active codebase:
+
+1. __init__.py
+2. strategy_input_builder.py
+3. test_aggregation.py
+
+Reason: Dead code - never imported or used by any API endpoints or engines.

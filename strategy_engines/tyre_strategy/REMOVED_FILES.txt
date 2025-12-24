@@ -1,0 +1,13 @@
+Files removed from tyre_strategy/ directory on 2025-12-23:
+
+These files were removed as they were not integrated into any active codebase:
+
+1. __init__.py
+2. compound_switch_strategy.py
+3. push_manage_strategy.py
+4. stint_length_strategy.py
+5. tyre_degradation_strategy.py
+6. tyre_offset_strategy.py
+
+Reason: Dead code - never imported or used by any API endpoints or engines.
+Only mentioned in documentation/README as examples.

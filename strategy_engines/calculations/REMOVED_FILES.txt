@@ -1,0 +1,15 @@
+Files removed from calculations/ directory on 2025-12-23:
+
+These files/subdirectories were removed as they were not integrated into any active codebase:
+
+1. __init__.py
+2. car/ (subdirectory)
+3. driver/ (subdirectory)
+4. race_state/ (subdirectory)
+5. track/ (subdirectory)
+6. traffic/ (subdirectory)
+7. tyre/ (subdirectory)
+8. weather/ (subdirectory)
+
+Reason: Dead code - never imported or used by any API endpoints or engines.
+Calculation functionality exists in ../calculation_engines/ instead.

@@ -1,0 +1,10 @@
+Files removed from safety_car_strategy/ directory on 2025-12-23:
+
+These files were removed as they were not integrated into any active codebase:
+
+1. __init__.py
+2. restart_risk_strategy.py
+3. sc_pit_gain_strategy.py
+4. vsc_exploitation_strategy.py
+
+Reason: Dead code - never imported or used by any API endpoints or engines.

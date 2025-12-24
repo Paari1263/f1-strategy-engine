@@ -1,0 +1,13 @@
+Files removed from race_strategy/ directory on 2025-12-23:
+
+These files were removed as they were not integrated into any active codebase:
+
+1. __init__.py
+2. overall_race_strategy.py
+3. points_maximization_strategy.py
+4. risk_reward_strategy.py
+5. stint_sequencing_strategy.py
+6. team_conflict_strategy.py
+
+Reason: Dead code - never imported or used by any API endpoints or engines.
+Only mentioned in documentation/README as examples.

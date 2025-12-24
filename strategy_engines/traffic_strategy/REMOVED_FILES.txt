@@ -1,0 +1,11 @@
+Files removed from traffic_strategy/ directory on 2025-12-23:
+
+These files were removed as they were not integrated into any active codebase:
+
+1. __init__.py
+2. defensive_strategy.py
+3. dirty_air_impact_strategy.py
+4. overtake_probability_strategy.py
+5. train_detection_strategy.py
+
+Reason: Dead code - never imported or used by any API endpoints or engines.

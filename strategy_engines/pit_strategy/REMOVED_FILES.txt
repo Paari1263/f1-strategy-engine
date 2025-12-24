@@ -1,0 +1,13 @@
+Files removed from pit_strategy/ directory on 2025-12-23:
+
+These files were removed as they were not integrated into any active codebase:
+
+1. __init__.py
+2. double_stack_risk_strategy.py
+3. overcut_strategy.py
+4. pit_loss_strategy.py
+5. pit_window_strategy.py
+6. undercut_strategy.py
+
+Reason: Dead code - never imported or used by any API endpoints or engines.
+The functionality is now consolidated in ../pit_strategy_simulator.py
