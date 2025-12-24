@@ -108,70 +108,6 @@ python api/test_strategy_apis.py
 python engines/test/script.py
 ```
 
-## Usage Examples
-
-### API Server Access
-
-```python
-import httpx
-import json
-
-# Start server first: uvicorn api.main:app --port 8001 --reload
-
-async with httpx.AsyncClient() as client:
-    # Compare car performance
-    response = await client.get(
-        "http://localhost:8001/api/v1/compare/cars/performance",
-        params={
-            'year': 2024,
-            'event': 'Monaco',
-            'session': 'Q',
-            'driver1': 'VER',
-            'driver2': 'LEC'
-        },
-        timeout=120.0  # Increased timeout for FastF1 data loading
-    )
-    print(json.dumps(response.json(), indent=2))
-```
-
-### Cache Management
-
-```python
-# Check cache statistics
-response = await client.get("http://localhost:8001/api/v1/cache/stats")
-print(f"Cache hits: {response.json()['hits']}")
-print(f"Hit rate: {response.json()['hit_rate']}%")
-
-# Warm cache for specific event
-await client.post(
-    "http://localhost:8001/api/v1/cache/warm",
-    params={
-        'year': 2024,
-        'event': 'Monaco',
-        'session': 'R'
-    }
-)
-
-# Clear all cache
-await client.post("http://localhost:8001/api/v1/cache/clear")
-```
-
-### Engine Direct Usage
-
-```python
-from engines.shared_services_fastf1 import TrackService
-from engines.track_engine.schemas import TrackRequest
-
-# Analyze track characteristics
-request = TrackRequest(
-    year=2024,
-    gp="Monaco",
-    session="R"
-)
-result = await TrackService.analyze_track(request)
-print(json.dumps(result.dict(), indent=2, default=str))
-```
-
 ## Architecture
 
 ```
@@ -241,15 +177,6 @@ f1-race-strategy-simulator/
   - Driver Insights APIs (2 demos)
   - Strategy APIs (2 demos)
   - Visualization APIs (1 notebook)
-
-## Test Results
-
-```
-Unit Tests:        14/14 passing ✅
-Integration Tests:  4/4 passing ✅
-
-Total: 18/18 TESTS PASSING
-```
 
 ## Key Components
 
