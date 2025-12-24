@@ -1,0 +1,25 @@
+fastapi==0.115.5
+uvicorn==0.32.1
+pydantic==2.10.3
+pydantic-settings==2.6.1
+python-dotenv==1.0.1
+
+# Redis caching dependencies
+redis==5.0.1
+hiredis==2.3.2
+
+# FastF1 and data processing dependencies
+fastf1>=3.4.0
+pandas>=2.0.0
+numpy>=1.24.0
+matplotlib>=3.7.0
+scipy>=1.10.0
+asgiref>=3.7.0
+
+# Visualization dependencies
+plotly>=5.0.0
+kaleido>=0.2.1
+
+# Jupyter notebook dependencies
+jupyter>=1.0.0
+requests>=2.31.0

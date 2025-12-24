@@ -1,0 +1,406 @@
+# F1 Strategy Engine
+
+[![Python](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-green.svg)](https://fastapi.tiangolo.com/)
+[![Redis](https://img.shields.io/badge/Redis-7.2+-red.svg)](https://redis.io/)
+[![FastF1](https://img.shields.io/badge/FastF1-3.4+-orange.svg)](https://docs.fastf1.dev/)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Tests](https://img.shields.io/badge/tests-18%2F18%20passing-brightgreen.svg)]()
+
+Advanced Formula 1 race strategy analysis platform using FastF1 data.
+
+**Status:** ✅ Production Ready | 20 API Endpoints | 18 Demo Scripts | Performance Boost
+
+## Features
+
+### Analysis Capabilities
+- **Car Performance** - Speed profiles, braking analysis, cornering efficiency, straight-line performance
+- **Driver Performance** - Pace analysis, consistency metrics, lap-to-lap variation, stint breakdown
+- **Battle Prediction** - Overtaking probability with DRS and track difficulty modeling
+- **Pit Strategy** - Optimal pit windows, undercut/overcut calculations, tyre compound recommendations
+- **Track Evolution** - Grip progression tracking across practice, qualifying, and race sessions
+- **Tyre Management** - Degradation modeling, compound performance, grip loss analysis
+- **Traffic Analysis** - Gap evolution, DRS trains, overtaking opportunities
+- **Weather Impact** - Temperature effects, rain probability, track conditions
+
+### API Categories
+- **Comparison APIs** - Car-to-car and driver-to-driver comparisons (5 endpoints)
+- **Driver Insights APIs** - Performance profiles and stint analysis (2 endpoints)
+- **Strategy APIs** - Real-time pit optimization and battle forecasting (2 endpoints)
+- **Visualization APIs** - Interactive Plotly charts for telemetry analysis (7 endpoints)
+
+### Output Formats
+- **JSON** - Structured data export with metadata and timestamps
+- **PNG** - Static chart images for reports and presentations
+- **Interactive Charts** - Plotly visualizations with zoom, pan, and hover
+- **CSV** - Spreadsheet-compatible tables (planned)
+- **Reports** - Formatted analysis summaries (planned)
+
+## Quick Start
+
+### Prerequisites
+
+#### Redis Cache Setup (Required for Production)
+```bash
+# Install Redis via Docker
+docker pull redis:latest
+docker run -d --name f1-redis -p 6379:6379 redis:latest
+
+# Or install via Homebrew (macOS)
+brew install redis
+redis-server
+```
+
+### Start the API Server
+```bash
+# Activate virtual environment
+source venv/bin/activate
+
+# Start the main API server (port 8001)
+uvicorn api.main:app --port 8001 --reload
+
+# Or start the engines server (port 8002)
+uvicorn engines.main:app --port 8002 --reload
+```
+
+**Note:** The server now runs on **port 8001** (changed from 8000) to avoid conflicts.
+
+### Run Demo Scripts
+```bash
+# Engine Demos (Plain JSON Output)
+cd demo/plain_engines
+python track_engine_impl.py
+python car_engine_impl.py
+python driver_engine_impl.py
+
+# API Demos - Comparison APIs
+cd demo/apis/comparison
+python car_performance_impl.py
+python drivers_pace_impl.py
+
+# API Demos - Driver Insights
+cd demo/apis/driver
+python driver_performance_profile_impl.py
+python driver_stint_analysis_impl.py
+
+# API Demos - Strategy APIs
+cd demo/apis/strategy
+python pit_optimization_impl.py
+python battle_forecast_impl.py
+
+# Visualization Demos (Jupyter Notebook)
+cd demo/apis/visualization
+jupyter notebook visualization_apis_impl.ipynb
+```
+
+### Run Test Suites
+```bash
+# API Tests
+python api/test_comparison_apis.py
+python api/test_driver_insights_apis.py
+python api/test_strategy_apis.py
+
+# Engine Tests
+python engines/test/script.py
+```
+
+## Usage Examples
+
+### API Server Access
+
+```python
+import httpx
+import json
+
+# Start server first: uvicorn api.main:app --port 8001 --reload
+
+async with httpx.AsyncClient() as client:
+    # Compare car performance
+    response = await client.get(
+        "http://localhost:8001/api/v1/compare/cars/performance",
+        params={
+            'year': 2024,
+            'event': 'Monaco',
+            'session': 'Q',
+            'driver1': 'VER',
+            'driver2': 'LEC'
+        },
+        timeout=120.0  # Increased timeout for FastF1 data loading
+    )
+    print(json.dumps(response.json(), indent=2))
+```
+
+### Cache Management
+
+```python
+# Check cache statistics
+response = await client.get("http://localhost:8001/api/v1/cache/stats")
+print(f"Cache hits: {response.json()['hits']}")
+print(f"Hit rate: {response.json()['hit_rate']}%")
+
+# Warm cache for specific event
+await client.post(
+    "http://localhost:8001/api/v1/cache/warm",
+    params={
+        'year': 2024,
+        'event': 'Monaco',
+        'session': 'R'
+    }
+)
+
+# Clear all cache
+await client.post("http://localhost:8001/api/v1/cache/clear")
+```
+
+### Engine Direct Usage
+
+```python
+from engines.shared_services_fastf1 import TrackService
+from engines.track_engine.schemas import TrackRequest
+
+# Analyze track characteristics
+request = TrackRequest(
+    year=2024,
+    gp="Monaco",
+    session="R"
+)
+result = await TrackService.analyze_track(request)
+print(json.dumps(result.dict(), indent=2, default=str))
+```
+
+## Architecture
+
+```
+f1-race-strategy-simulator/
+├── api/                      # REST API layer (FastAPI - Port 8001)
+│   ├── comparison_router.py  # Car/Driver comparison endpoints (5)
+│   ├── driver_router.py      # Driver insights endpoints (2)
+│   ├── strategy_router.py    # Strategy optimization endpoints (2)
+│   ├── visualization_router.py # Visualization endpoints (7)
+│   └── cache_router.py       # Cache management endpoints (4)
+├── cache/                    # Redis caching layer
+│   ├── redis_client.py       # Redis connection with pooling
+│   ├── cache_keys.py         # Hierarchical cache key generation
+│   ├── ttl_strategy.py       # Dynamic TTL based on session timing
+│   ├── cache_manager.py      # High-level cache operations
+│   └── cache_decorators.py   # @cached and @invalidate_cache
+├── engines/                  # Microservice engines (Port 8002)
+│   ├── track_engine/         # Track characteristics
+│   ├── car_engine/           # Car performance
+│   ├── tyre_engine/          # Tyre management
+│   ├── weather_engine/       # Weather analysis
+│   ├── traffic_engine/       # Traffic patterns
+│   ├── pit_engine/           # Pit strategy
+│   ├── safetycar_engine/     # Safety car scenarios
+│   └── driver_engine/        # Driver performance
+├── demo/                     # Demo implementation scripts
+│   ├── plain_engines/        # 8 engine demos (JSON output)
+│   └── apis/                 # API demos by category
+│       ├── comparison/       # 5 comparison demos
+│       ├── driver/           # 2 driver insight demos
+│       ├── strategy/         # 2 strategy demos
+│       └── visualization/    # Jupyter notebook demo
+├── data_access/              # FastF1 integration
+├── analysis_engines/         # Performance analyzers (6)
+├── calculation_engines/      # Domain calculations (29)
+├── strategy_engines/         # Strategy systems
+├── comparison_engine/        # Unified comparison interface
+└── output_formats/           # Export formats (JSON, CSV, Reports)
+```
+
+## 📚 Documentation
+
+### Core Documentation
+- **[API Documentation](api/README.md)** - REST API endpoints and schemas
+- **[API Examples](API_EXAMPLES.md)** - Practical usage examples for all 16 API endpoints
+- **[Architecture Overview](ARCHITECTURE.md)** - System design, layer breakdown, and **caching architecture**
+- **[Calculation Logic](CALCULATION_LOGIC.md)** - Detailed explanation of all 29 calculations with formulas
+
+### Caching & Performance
+- **[Caching Architecture](ARCHITECTURE.md#-caching-architecture)** - Multi-tier Redis caching system
+  - 4-layer cache hierarchy (Session → Computed → API → Reference)
+  - Dynamic TTL strategy (5min → 24h → 7d)
+  - 99% performance improvement on cache hits (20-90s → 50-200ms)
+  - Cache warming and management endpoints
+
+### Component Documentation
+- **[Engine Services](engines/README.md)** - 8 microservice engines with REST APIs
+- **[Analysis Engines](analysis_engines/README.md)** - 6 telemetry analyzers
+- **[Calculation Engines](calculation_engines/README.md)** - 29 calculation modules across 7 categories
+- **[Comparison Engine](comparison_engine/README.md)** - Unified comparison interface
+- **[Strategy Engines](strategy_engines/README.md)** - High-level strategy systems
+
+### Demo & Usage Guides
+- **[Engine Demos README](demo/plain_engines/README.md)** - Parameter guide for 8 engine demos
+- **[API Demos README](demo/apis/README.md)** - Complete parameter reference for all API demos
+  - Comparison APIs (5 demos)
+  - Driver Insights APIs (2 demos)
+  - Strategy APIs (2 demos)
+  - Visualization APIs (1 notebook)
+
+## Test Results
+
+```
+Unit Tests:        14/14 passing ✅
+Integration Tests:  4/4 passing ✅
+
+Total: 18/18 TESTS PASSING
+```
+
+## Key Components
+
+### REST API Layer (`/api`)
+- **ComparisonRouter** - Car and driver comparisons (5 endpoints)
+- **DriverRouter** - Driver insights and performance (2 endpoints)
+- **StrategyRouter** - Pit strategy and battle forecast (2 endpoints)
+- **VisualizationRouter** - Interactive charts (7 endpoints)
+
+### Microservice Engines (`/engines`)
+- **TrackEngine** - Track characteristics and evolution
+- **CarEngine** - Car performance metrics
+- **TyreEngine** - Tyre management and degradation
+- **WeatherEngine** - Weather impact analysis
+- **TrafficEngine** - Traffic patterns and gaps
+- **PitEngine** - Pit stop strategy
+- **SafetyCarEngine** - Safety car scenarios
+- **DriverEngine** - Driver-specific performance
+
+### Analysis Engines
+- **SpeedAnalyzer** - Speed profiles and efficiency metrics
+- **BrakingAnalyzer** - Braking performance and stability
+- **CornerAnalyzer** - Entry/apex/exit speed analysis
+- **StraightLineAnalyzer** - Power and drag analysis
+- **PaceAnalyzer** - Lap time analysis and fuel correction
+- **ConsistencyAnalyzer** - Lap variation and outlier detection
+
+### Strategy Engines
+- **BattleForecast** - Overtaking probability with DRS modeling
+- **PitStrategySimulator** - Undercut/overcut calculations, optimal pit windows
+- **TrackEvolutionTracker** - Grip progression across sessions
+
+### Output Formats
+- **JSONExporter** - Structured export with metadata
+- **CSVExporter** - Lap data, telemetry, and strategy tables
+- **ReportGenerator** - Formatted comparison reports
+
+## Requirements
+
+- Python 3.9+
+- Redis 5.0+ (for caching)
+- Docker (recommended for Redis)
+- FastAPI 0.115.5+
+- FastF1 3.4.0+
+- See requirements.txt for full dependencies
+
+## API Endpoints
+
+**Status:** ✅ Production Ready | 20 API Endpoints | 18 Demo Scripts
+
+### Comparison APIs (5 endpoints)
+- `GET /api/v1/compare/cars/performance` - Car performance comparison
+- `GET /api/v1/compare/cars/performance/detailed` - Detailed car comparison with profiles
+- `GET /api/v1/compare/cars/tyre-performance` - Tyre degradation comparison
+- `GET /api/v1/compare/drivers/pace` - Driver pace comparison
+- `GET /api/v1/compare/drivers/consistency` - Driver consistency metrics
+
+### Driver Insights APIs (2 endpoints)
+- `GET /api/v1/driver/performance-profile` - Comprehensive driver analysis
+- `GET /api/v1/driver/stint-analysis` - Stint-by-stint breakdown
+
+### Strategy APIs (2 endpoints)
+- `GET /api/v1/strategy/pit-optimization` - Real-time pit strategy optimization
+- `GET /api/v1/strategy/battle-forecast` - Overtaking probability prediction
+
+### Visualization APIs (7 endpoints)
+- `GET /api/v1/visualizations/speed-trace` - Speed profile comparison
+- `GET /api/v1/visualizations/throttle-brake` - Throttle & brake patterns
+- `GET /api/v1/visualizations/lap-time-distribution` - Lap time consistency
+- `GET /api/v1/visualizations/sector-comparison` - Sector performance
+- `GET /api/v1/visualizations/tyre-degradation` - Tyre wear visualization
+- `GET /api/v1/visualizations/gear-usage` - Gear usage heatmap
+- `GET /api/v1/visualizations/performance-radar` - Multi-dimensional radar chart
+
+### Cache Management APIs (4 endpoints)
+- `GET /api/v1/cache/stats` - Cache hit/miss statistics and memory usage
+- `POST /api/v1/cache/warm` - Pre-load cache for specific event/session
+- `POST /api/v1/cache/clear` - Clear all cache or specific patterns
+- `GET /api/v1/cache/health` - Redis connection health check
+
+## Statistics
+
+- **50+ production files** across 10 modules
+- **~10,000 lines of code** (includes caching layer)
+- **18 demo scripts** (Python + Jupyter)
+- **20 API endpoints** across 5 categories
+- **8 microservice engines**
+- **29 calculation modules**
+- **6 analysis engines**
+- **4-tier caching system** with Redis
+- **150+ tracked metrics**
+- **18/18 tests passing** ✅
+
+## Known Limitations
+
+### Racing Dynamics & Predictive Capabilities
+- **Human factors unpredictable** - Driver instincts, split-second decisions, racecraft, and mental state cannot be quantified or predicted
+- **Real-time incidents** - Unpredictable events like crashes, mechanical failures, driver errors, or sudden weather changes are not accounted for
+- **Strategic gambles** - Teams may take unconventional strategies or risks that deviate from optimal calculations
+- **Race-day variables** - Tire warm-up issues, setup compromises, driver comfort, and track evolution anomalies are difficult to model accurately
+- **Multi-car interactions** - Complex battle scenarios involving 3+ cars, DRS trains, and team orders cannot be fully simulated
+
+**Note:** This system provides data-driven insights and probabilities, not guarantees. Real racing involves countless variables beyond telemetry analysis.
+
+### Data & Usage Scope
+- **Historical data only** - Current implementation is built on historical race data. Live timing and telemetry data are subject to Formula 1's strict licensing agreements and regulations
+- **F1 licensing restrictions** - Real-time race data access requires official licensing from Formula One Management (FOM)
+- **Analysis potential unlimited** - Your creativity and understanding of physics are the only limits on how these endpoints can be combined for deeper analysis and visualization
+- **Extensible architecture** - The modular design allows for custom calculations, new visualizations, and novel analytical approaches using the existing 29 calculation engines
+
+**Opportunity:** Researchers, engineers, and strategists can leverage these APIs to build sophisticated analysis tools, predictive models, and visualization dashboards limited only by imagination and computational resources.
+
+### Caching
+- **Session objects not cacheable** - Full FastF1 Session objects don't serialize to JSON. Individual data components (laps, telemetry) are cached separately.
+- **@cached decorator limitation** - Not compatible with Pydantic response models. Manual caching used in API endpoints.
+- **Docker dependency** - Redis requires Docker daemon running (or local Redis installation).
+
+### Performance
+- **First request slow** - Cold cache requires 20-90s for FastF1 data loading
+- **Memory usage** - Redis can use ~100-500MB depending on cached events
+- **Network dependency** - FastF1 data fetched from online sources when cache misses
+
+## Troubleshooting
+
+### Redis Connection Issues
+```bash
+# Check if Redis is running
+docker ps | grep redis
+
+# Restart Redis container
+docker restart f1-redis
+
+# Check Redis logs
+docker logs f1-redis
+```
+
+### Port Conflicts
+```bash
+# If port 8001 is in use
+lsof -ti:8001 | xargs kill -9
+
+# Or use a different port
+uvicorn api.main:app --port 8003 --reload
+```
+
+### Cache Not Working
+```python
+# Check cache health
+curl http://localhost:8001/api/v1/cache/health
+
+# Clear cache and retry
+curl -X POST http://localhost:8001/api/v1/cache/clear
+
+# Check cache statistics
+curl http://localhost:8001/api/v1/cache/stats
+```
+
+*Built for professional F1 racing analytics*

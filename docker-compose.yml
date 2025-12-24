@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7.2-alpine
+    container_name: f1-strategy-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: >
+      redis-server
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+      --save 60 1
+      --loglevel warning
+      --requirepass ${REDIS_PASSWORD:-f1-redis-secret}
+    volumes:
+      - redis-data:/data
+    networks:
+      - f1-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: f1-redis-commander
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      - REDIS_HOSTS=local:redis:6379:0:${REDIS_PASSWORD:-f1-redis-secret}
+    networks:
+      - f1-network
+    depends_on:
+      - redis
+
+volumes:
+  redis-data:
+    driver: local
+
+networks:
+  f1-network:
+    driver: bridge
